@@ -1,12 +1,9 @@
-#include <cstdlib>
-#include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <sstream>
-#include <string>
 
+#include "frontend/ast.h"
 #include "frontend/lexer.h"
-#include "frontend/token.h"
+#include "frontend/parser.h"
 
 std::string readFile(std::filesystem::path path);
 
@@ -22,13 +19,10 @@ int main(int argc, char *argv[])
     std::string raw = readFile(path);
 
     Lexer lexer(path, raw);
+    Parser parser(lexer);
+    std::unique_ptr<Ast> ast = parser.Parse();
 
-    Token tkn = lexer.GetNextToken();
-    while (tkn.kind != TokenKind::Eof)
-    {
-        std::cout << tkn << std::endl;
-        tkn = lexer.GetNextToken();
-    }
+    std::cout << *ast.get();
 }
 
 std::string readFile(std::filesystem::path path)

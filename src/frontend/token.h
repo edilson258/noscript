@@ -45,3 +45,4 @@ class Token
 };
 
 std::ostream &operator<<(std::ostream &, const Token &);
+std::ostream &operator<<(std::ostream &os, const TokenKind &);
