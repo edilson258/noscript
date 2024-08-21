@@ -1,9 +1,11 @@
 #include <fstream>
 #include <sstream>
 
+#include "checker/checker.h"
 #include "frontend/ast.h"
 #include "frontend/lexer.h"
 #include "frontend/parser.h"
+#include "stdlib/stdlib.h"
 
 std::string readFile(std::filesystem::path path);
 
@@ -23,6 +25,9 @@ int main(int argc, char *argv[])
     std::unique_ptr<Ast> ast = parser.Parse();
 
     std::cout << *ast.get();
+
+    Checker checker(StandardLibrary::GetBuiltins());
+    checker.Check(ast);
 }
 
 std::string readFile(std::filesystem::path path)
