@@ -53,7 +53,7 @@ Token Lexer::readSimpleToken(TokenKind kind)
 
 Token Lexer::readStringToken()
 {
-    advanceOne(); // eat '"'
+    advanceOne(); // eat left '"'
 
     std::string label;
 
@@ -65,14 +65,15 @@ Token Lexer::readStringToken()
         if (peekOne() == '"')
         {
             label = m_Raw.substr(start, m_Cursor - start);
-            advanceOne(); // eat '"'
+            advanceOne(); // eat right '"'
             break;
         }
 
         if (isEof() || peekOne() == '\n')
         {
             std::cerr << "\033[1m\x1b[31mERROR\x1b[0m: unterminated string literal" << std::endl;
-            std::cerr << highlightError(m_Raw, start - 1, m_Cursor); // 'start - 1' to highlight the '"'
+            //                                              start - 1 to highlight the left '"'
+            std::cerr << std::endl << highlightError(m_Raw, start - 1, m_Cursor) << std::endl;
             abort();
         }
 
@@ -122,6 +123,6 @@ void Lexer::advanceOne()
 }
 
 bool Lexer::isEof() { return m_Cursor >= m_Raw.length(); };
-char Lexer::peekOne() { return m_Cursor < m_Raw.length() ? m_Raw.at(m_Cursor) : -1; }
+char Lexer::peekOne() { return isEof() ? -1 : m_Raw.at(m_Cursor); }
 Range Lexer::createRange() { return Range(m_RangeStart, m_RangeEnd); }
 void Lexer::updateRangeStart() { m_RangeStart = m_Cursor; }

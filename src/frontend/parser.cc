@@ -14,7 +14,7 @@ std::unique_ptr<Ast> Parser::Parse()
 
     auto ast = std::make_unique<Ast>();
 
-    while (TokenKind::Eof != m_CurrentToken.kind)
+    while (TokenKind::Eof != m_CurrentToken.GetKind())
     {
         ast.get()->block.push_back(std::move(parseStatement()));
     }
@@ -24,7 +24,7 @@ std::unique_ptr<Ast> Parser::Parse()
 
 std::unique_ptr<Statement> Parser::parseStatement()
 {
-    switch (m_CurrentToken.kind)
+    switch (m_CurrentToken.GetKind())
     {
     default:
     {
@@ -39,13 +39,15 @@ std::unique_ptr<StatementExpression> Parser::parseStatementExpression(Precedence
 {
     std::unique_ptr<StatementExpression> lhs;
 
-    switch (m_CurrentToken.kind)
+    switch (m_CurrentToken.GetKind())
     {
     case TokenKind::String:
-        lhs = std::make_unique<ExpressionLiteral>(std::get<std::string>(m_CurrentToken.data), m_CurrentToken.range);
+        lhs = std::make_unique<ExpressionLiteral>(std::get<std::string>(m_CurrentToken.GetData()),
+                                                  m_CurrentToken.GetRange());
         break;
     case TokenKind::Identifier:
-        lhs = std::make_unique<ExpressionIdentifier>(std::get<std::string>(m_CurrentToken.data), m_CurrentToken.range);
+        lhs = std::make_unique<ExpressionIdentifier>(std::get<std::string>(m_CurrentToken.GetData()),
+                                                     m_CurrentToken.GetRange());
         break;
     default:
         std::cerr << "[Error] unexpected lhs expression: " << m_CurrentToken << std::endl;
@@ -54,9 +56,9 @@ std::unique_ptr<StatementExpression> Parser::parseStatementExpression(Precedence
 
     bump();
 
-    while (TokenKind::Eof != m_CurrentToken.kind && precedence < currTokenPrecedence())
+    while (TokenKind::Eof != m_CurrentToken.GetKind() && precedence < currTokenPrecedence())
     {
-        switch (m_CurrentToken.kind)
+        switch (m_CurrentToken.GetKind())
         {
         case TokenKind::Dot:
             lhs = parseExpressionMemberAccess(std::move(lhs));
@@ -75,7 +77,7 @@ std::unique_ptr<StatementExpression> Parser::parseStatementExpression(Precedence
 std::unique_ptr<ExpressionMemberAccess> Parser::parseExpressionMemberAccess(std::unique_ptr<StatementExpression> object)
 {
     bumpExpect(TokenKind::Dot);
-    Range range = object->range + m_CurrentToken.range;
+    Range range = object->range + m_CurrentToken.GetRange();
     auto expression = parseStatementExpression(Precedence::MemberAccess);
 
     if (ExpressionKind::Identifier != expression.get()->Kind)
@@ -94,7 +96,7 @@ std::unique_ptr<ExpressionFunctionCall> Parser::parseExpressionFunctionCall(std:
 {
     bumpExpect(TokenKind::LeftParent);
     std::vector<std::unique_ptr<StatementExpression>> args = parseListOfExpressions(TokenKind::RightParent);
-    auto range = callee->range + m_CurrentToken.range;
+    auto range = callee->range + m_CurrentToken.GetRange();
     bumpExpect(TokenKind::RightParent);
     return std::make_unique<ExpressionFunctionCall>(std::move(callee), std::move(args), range);
 }
@@ -103,7 +105,7 @@ std::vector<std::unique_ptr<StatementExpression>> Parser::parseListOfExpressions
 {
     std::vector<std::unique_ptr<StatementExpression>> xs;
 
-    while (m_CurrentToken.kind != stop)
+    while (m_CurrentToken.GetKind() != stop)
     {
         xs.push_back(parseStatementExpression(Precedence::Lowest));
     }
@@ -111,7 +113,7 @@ std::vector<std::unique_ptr<StatementExpression>> Parser::parseListOfExpressions
     return xs;
 }
 
-Precedence Parser::currTokenPrecedence() { return tokenToPrecedence(m_CurrentToken.kind); }
+Precedence Parser::currTokenPrecedence() { return tokenToPrecedence(m_CurrentToken.GetKind()); }
 
 Precedence tokenToPrecedence(TokenKind tokenKind)
 {
@@ -134,10 +136,10 @@ void Parser::bump()
 
 void Parser::bumpExpect(TokenKind expected_kind)
 {
-    if (expected_kind != m_CurrentToken.kind)
+    if (expected_kind != m_CurrentToken.GetKind())
     {
         std::cerr << "Error: expected token " << expected_kind;
-        std::cerr << " but got " << m_CurrentToken.kind;
+        std::cerr << " but got " << m_CurrentToken.GetKind();
         abort();
     }
     bump();

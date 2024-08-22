@@ -3,7 +3,7 @@
 std::ostream &operator<<(std::ostream &os, const Token &token)
 {
 
-    switch (token.kind)
+    switch (token.GetKind())
     {
     case TokenKind::Eof:
         os << "Eof";
@@ -21,14 +21,14 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
         os << "Symbol: ;";
         break;
     case TokenKind::String:
-        os << "String: " << std::get<std::string>(token.data);
+        os << "String: " << std::get<std::string>(token.GetData());
         break;
     case TokenKind::Identifier:
-        os << "Identifier: " << std::get<std::string>(token.data);
+        os << "Identifier: " << std::get<std::string>(token.GetData());
         break;
     }
 
-    os << " range " << token.range.Start << ":" << token.range.End;
+    os << " range " << token.GetRange().Start << ":" << token.GetRange().End;
 
     return os;
 }

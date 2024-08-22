@@ -24,29 +24,22 @@ enum class TokenKind
 
 using TokenData = std::variant<std::monostate, std::string>;
 
-class TokenPosition
-{
-  public:
-    size_t line;
-    size_t column;
-
-    TokenPosition() : line(0), column(0) {};
-    TokenPosition(size_t line, size_t column) : line(line), column(column) {};
-
-    ~TokenPosition() = default;
-};
-
 class Token
 {
-  public:
-    TokenKind kind;
-    TokenData data;
-    Range range;
+  private:
+    TokenKind m_Kind;
+    TokenData m_Data;
+    Range m_Range;
 
+  public:
     Token() = default;
-    Token(TokenKind kind, TokenData data, Range range) : kind(kind), data(data), range(range) {};
+    Token(TokenKind kind, TokenData data, Range range) : m_Kind(kind), m_Data(data), m_Range(range) {};
 
     ~Token() = default;
+
+    Range GetRange() const { return m_Range; }
+    TokenKind GetKind() const { return m_Kind; }
+    TokenData GetData() const { return m_Data; }
 };
 
 std::ostream &operator<<(std::ostream &, const Token &);
