@@ -5,12 +5,12 @@
 
 #include "utils.h"
 
-std::string highlightError(std::string &code, int start, int end)
+std::string highlightError(const std::string &code, int start, int end)
 {
     return highlight(code, start, end, "\x1b[4m\x1b[31m");
 }
 
-std::string highlight(std::string &code, int start, int end, std::string color)
+std::string highlight(const std::string &code, int start, int end, std::string color)
 {
     int code_len = code.length();
     end = end >= code_len ? code_len - 1 : end;

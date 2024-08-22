@@ -1,8 +1,10 @@
 #include <cctype>
 #include <cstddef>
 #include <cstdlib>
+#include <iostream>
 #include <variant>
 
+#include "../utils.h"
 #include "lexer.h"
 #include "token.h"
 
@@ -52,10 +54,32 @@ Token Lexer::readSimpleToken(TokenKind kind)
 Token Lexer::readStringToken()
 {
     advanceOne(); // eat '"'
-    std::string label = readWhile([](char x) { return x != '"'; });
-    advanceOne(); // eat '"'
-    Token str = Token(TokenKind::String, label, createRange());
-    return str;
+
+    std::string label;
+
+    size_t start = m_Cursor;
+
+    while (1)
+    {
+
+        if (peekOne() == '"')
+        {
+            label = m_Raw.substr(start, m_Cursor - start);
+            advanceOne(); // eat '"'
+            break;
+        }
+
+        if (isEof() || peekOne() == '\n')
+        {
+            std::cerr << "\033[1m\x1b[31mERROR\x1b[0m: unterminated string literal" << std::endl;
+            std::cerr << highlightError(m_Raw, start - 1, m_Cursor); // 'start - 1' to highlight the '"'
+            abort();
+        }
+
+        advanceOne();
+    }
+
+    return Token(TokenKind::String, label, createRange());
 }
 
 std::string Lexer::readWhile(Predicate p)
