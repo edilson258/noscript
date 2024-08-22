@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+#include <cstdio>
 #include <functional>
 #include <iostream>
 #include <string>
@@ -11,30 +13,34 @@ using Predicate = std::function<bool(char)>;
 class Lexer
 {
   private:
-    bool m_IsEof;
+    size_t m_Cursor;
+    size_t m_RangeStart;
+    size_t m_RangeEnd;
+
     size_t m_Line;
     size_t m_Column;
-    size_t m_Cursor;
-    size_t m_ReadCursor;
-    char m_CurrentChar;
-    const std::string &m_FileName;
+
     const std::string &m_Raw;
+    const std::string &m_FileName;
+
+    char peekOne();
+    void advanceOne();
+    void skipWhitespace();
+    void updateRangeStart();
+    bool isEof();
+
+    Token readStringToken();
+    Token readSimpleToken(TokenKind);
 
     std::string readWhile(Predicate);
-    void skipWhitespace();
-    void readChar();
+
+    Range createRange();
 
   public:
     Lexer(const std::string &fileName, const std::string &raw) : m_FileName(fileName), m_Raw(raw)
     {
-        m_IsEof = raw.length() == 0;
-        m_Line = 1;
-        m_Column = 0;
         m_Cursor = 0;
-        m_ReadCursor = 0;
-        m_CurrentChar = 0;
-
-        readChar(); // fill 'm_CurrentChar'
+        m_RangeStart = 0;
     };
 
     Token GetNextToken();

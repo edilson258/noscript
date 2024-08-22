@@ -42,10 +42,10 @@ std::unique_ptr<StatementExpression> Parser::parseStatementExpression(Precedence
     switch (m_CurrentToken.kind)
     {
     case TokenKind::String:
-        lhs = std::make_unique<ExpressionLiteral>(std::get<std::string>(m_CurrentToken.data));
+        lhs = std::make_unique<ExpressionLiteral>(std::get<std::string>(m_CurrentToken.data), m_CurrentToken.range);
         break;
     case TokenKind::Identifier:
-        lhs = std::make_unique<ExpressionIdentifier>(std::get<std::string>(m_CurrentToken.data));
+        lhs = std::make_unique<ExpressionIdentifier>(std::get<std::string>(m_CurrentToken.data), m_CurrentToken.range);
         break;
     default:
         std::cerr << "[Error] unexpected lhs expression: " << m_CurrentToken << std::endl;
@@ -75,16 +75,28 @@ std::unique_ptr<StatementExpression> Parser::parseStatementExpression(Precedence
 std::unique_ptr<ExpressionMemberAccess> Parser::parseExpressionMemberAccess(std::unique_ptr<StatementExpression> object)
 {
     bumpExpect(TokenKind::Dot);
-    auto member = parseStatementExpression(Precedence::MemberAccess);
-    return std::make_unique<ExpressionMemberAccess>(std::move(object), std::move(member));
+    Range range = object->range + m_CurrentToken.range;
+    auto expression = parseStatementExpression(Precedence::MemberAccess);
+
+    if (ExpressionKind::Identifier != expression.get()->Kind)
+    {
+        std::cerr << "rhs of '.' must be an identifier" << std::endl;
+        abort();
+    }
+
+    auto tmp = static_cast<ExpressionIdentifier *>(expression.get());
+    auto fieldIdentifier = std::make_unique<ExpressionIdentifier>(tmp->Label, tmp->range);
+
+    return std::make_unique<ExpressionMemberAccess>(std::move(object), std::move(fieldIdentifier), range);
 }
 
 std::unique_ptr<ExpressionFunctionCall> Parser::parseExpressionFunctionCall(std::unique_ptr<StatementExpression> callee)
 {
     bumpExpect(TokenKind::LeftParent);
     std::vector<std::unique_ptr<StatementExpression>> args = parseListOfExpressions(TokenKind::RightParent);
+    auto range = callee->range + m_CurrentToken.range;
     bumpExpect(TokenKind::RightParent);
-    return std::make_unique<ExpressionFunctionCall>(std::move(callee), std::move(args));
+    return std::make_unique<ExpressionFunctionCall>(std::move(callee), std::move(args), range);
 }
 
 std::vector<std::unique_ptr<StatementExpression>> Parser::parseListOfExpressions(TokenKind stop)
@@ -126,7 +138,6 @@ void Parser::bumpExpect(TokenKind expected_kind)
     {
         std::cerr << "Error: expected token " << expected_kind;
         std::cerr << " but got " << m_CurrentToken.kind;
-        std::cerr << " at " << m_CurrentToken.pos.line << ":" << m_CurrentToken.pos.column << std::endl;
         abort();
     }
     bump();

@@ -1,5 +1,7 @@
 #include <fstream>
+#include <iostream>
 #include <sstream>
+#include <string>
 
 #include "checker/checker.h"
 #include "frontend/ast.h"
@@ -17,16 +19,17 @@ int main(int argc, char *argv[])
         abort();
     }
 
-    std::filesystem::path path(argv[1]);
-    std::string raw = readFile(path);
+    std::string filePath(argv[1]);
+    std::string raw = readFile(filePath);
 
-    Lexer lexer(path, raw);
+    Lexer lexer(filePath, raw);
+
     Parser parser(lexer);
     std::unique_ptr<Ast> ast = parser.Parse();
 
-    std::cout << *ast.get();
+    // std::cout << *ast.get();
 
-    Checker checker(StandardLibrary::GetBuiltins());
+    Checker checker(filePath, raw, StandardLibrary::GetBuiltins());
     checker.Check(ast);
 }
 

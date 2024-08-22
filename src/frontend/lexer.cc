@@ -1,6 +1,7 @@
 #include <cctype>
 #include <cstddef>
 #include <cstdlib>
+#include <variant>
 
 #include "lexer.h"
 #include "token.h"
@@ -8,94 +9,95 @@
 Token Lexer::GetNextToken()
 {
     skipWhitespace();
+    updateRangeStart();
 
-    Token token;
-    token.pos.line = m_Line;
-    token.pos.column = m_Column;
-
-    if (m_IsEof)
+    if (isEof())
     {
-        token.kind = TokenKind::Eof;
-        return token;
+        return Token(TokenKind::Eof, std::monostate(), createRange());
     }
 
-    switch (m_CurrentChar)
+    char currentChar = peekOne();
+
+    switch (currentChar)
     {
     case '(':
-        readChar();
-        token.kind = TokenKind::LeftParent;
-        return token;
+        return readSimpleToken(TokenKind::LeftParent);
     case ')':
-        readChar();
-        token.kind = TokenKind::RightParent;
-        return token;
+        return readSimpleToken(TokenKind::RightParent);
     case '.':
-        readChar();
-        token.kind = TokenKind::Dot;
-        return token;
+        return readSimpleToken(TokenKind::Dot);
     case ';':
-        readChar();
-        token.kind = TokenKind::Semicolon;
-        return token;
+        return readSimpleToken(TokenKind::Semicolon);
     case '"':
-        readChar();
-        token.kind = TokenKind::String;
-        token.data.emplace<std::string>(readWhile([](char x) { return x != '"'; }));
-        readChar();
-        return token;
+        return readStringToken();
     }
 
-    if (std::isalpha(m_CurrentChar) || '_' == m_CurrentChar)
+    if (std::isalpha(currentChar) || '_' == currentChar)
     {
-        std::string label = readWhile([](char x) { return std::isalnum(x) || x == '_'; });
-        token.kind = TokenKind::Identifier;
-        token.data.emplace<std::string>(label);
-        return token;
+        auto label = readWhile([](char x) { return std::isalnum(x) || '_' == x; });
+        Token identifier = Token(TokenKind::Identifier, label, createRange());
+        return identifier;
     }
 
-    std::cerr << "Error: unecpected token: " << m_CurrentChar;
-    std::cerr << " at " << m_Line << ":" << m_Column << std::endl;
     abort();
+};
+
+Token Lexer::readSimpleToken(TokenKind kind)
+{
+    advanceOne();
+    Token simpleToken = Token(kind, std::monostate(), createRange());
+    return simpleToken;
 }
 
-std::string Lexer::readWhile(Predicate predicate)
+Token Lexer::readStringToken()
+{
+    advanceOne(); // eat '"'
+    std::string label = readWhile([](char x) { return x != '"'; });
+    advanceOne(); // eat '"'
+    Token str = Token(TokenKind::String, label, createRange());
+    return str;
+}
+
+std::string Lexer::readWhile(Predicate p)
 {
     size_t start = m_Cursor;
-    while (!m_IsEof && predicate(m_CurrentChar))
+    while (!isEof() && p(peekOne()))
     {
-        readChar();
+        advanceOne();
     }
     return m_Raw.substr(start, m_Cursor - start);
 }
 
 void Lexer::skipWhitespace()
 {
-    while (!m_IsEof && std::isspace(m_CurrentChar))
+    while (!isEof() && std::isspace(peekOne()))
     {
-        readChar();
+        advanceOne();
     }
 }
 
-void Lexer::readChar()
+void Lexer::advanceOne()
 {
-    m_Cursor = m_ReadCursor;
-
-    if (m_Cursor >= m_Raw.length())
+    if (isEof())
     {
-        m_IsEof = true;
         return;
     }
 
-    m_CurrentChar = m_Raw.at(m_Cursor);
-    m_ReadCursor++;
+    m_RangeEnd = m_Cursor;
+    m_Cursor += 1;
 
-    if (m_CurrentChar == '\n')
+    if (peekOne() == '\n')
     {
-        m_Line++;
+        m_Line += 1;
         m_Column = 0;
     }
     else
     {
-        m_Column++;
+        m_Column += 1;
     }
 }
+
+bool Lexer::isEof() { return m_Cursor >= m_Raw.length(); };
+char Lexer::peekOne() { return m_Cursor < m_Raw.length() ? m_Raw.at(m_Cursor) : -1; }
+Range Lexer::createRange() { return Range(m_RangeStart, m_RangeEnd); }
+void Lexer::updateRangeStart() { m_RangeStart = m_Cursor; }

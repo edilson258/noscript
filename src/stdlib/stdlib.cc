@@ -16,7 +16,7 @@ std::shared_ptr<Type> StandardLibrary::makeConsole()
     auto logFunction = std::make_shared<TypeFunction>(isVarArgs, logFunctionReturnType, std::move(logFunctionParams));
     consoleFields["log"] = logFunction;
 
-    return std::make_shared<TypeObject>(consoleFields);
+    return std::make_shared<TypeObject>(consoleFields, "Console");
 }
 
 std::unordered_map<std::string, std::shared_ptr<Type>> StandardLibrary::GetBuiltins()

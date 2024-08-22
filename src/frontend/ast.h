@@ -6,6 +6,8 @@
 #include <variant>
 #include <vector>
 
+#include "../range/range.h"
+
 enum class StatementKind
 {
     Expression = 1
@@ -38,8 +40,10 @@ class StatementExpression : public Statement
 {
   public:
     const ExpressionKind Kind;
+    Range range;
 
-    StatementExpression(ExpressionKind kind) : Statement(StatementKind::Expression), Kind(kind) {};
+    StatementExpression(ExpressionKind kind, Range range)
+        : Statement(StatementKind::Expression), Kind(kind), range(range) {};
     ~StatementExpression() = default;
 };
 
@@ -50,20 +54,9 @@ class ExpressionFunctionCall : public StatementExpression
     std::vector<std::unique_ptr<StatementExpression>> Args;
 
     ExpressionFunctionCall(std::unique_ptr<StatementExpression> callee,
-                           std::vector<std::unique_ptr<StatementExpression>> args)
-        : StatementExpression(ExpressionKind::FunctionCall), Callee(std::move(callee)), Args(std::move(args)) {};
+                           std::vector<std::unique_ptr<StatementExpression>> args, Range range)
+        : StatementExpression(ExpressionKind::FunctionCall, range), Callee(std::move(callee)), Args(std::move(args)) {};
     ~ExpressionFunctionCall() = default;
-};
-
-class ExpressionMemberAccess : public StatementExpression
-{
-  public:
-    std::unique_ptr<StatementExpression> Object;
-    std::unique_ptr<StatementExpression> Member;
-
-    ExpressionMemberAccess(std::unique_ptr<StatementExpression> object, std::unique_ptr<StatementExpression> member)
-        : StatementExpression(ExpressionKind::MemberAccess), Object(std::move(object)), Member(std::move(member)) {};
-    ~ExpressionMemberAccess() = default;
 };
 
 class ExpressionIdentifier : public StatementExpression
@@ -71,8 +64,22 @@ class ExpressionIdentifier : public StatementExpression
   public:
     std::string Label;
 
-    ExpressionIdentifier(std::string label) : StatementExpression(ExpressionKind::Identifier), Label(label) {};
+    ExpressionIdentifier(std::string label, Range range)
+        : StatementExpression(ExpressionKind::Identifier, range), Label(label) {};
     ~ExpressionIdentifier() = default;
+};
+
+class ExpressionMemberAccess : public StatementExpression
+{
+  public:
+    std::unique_ptr<StatementExpression> Object;
+    std::unique_ptr<ExpressionIdentifier> Field;
+
+    ExpressionMemberAccess(std::unique_ptr<StatementExpression> object, std::unique_ptr<ExpressionIdentifier> field,
+                           Range range)
+        : StatementExpression(ExpressionKind::MemberAccess, range), Object(std::move(object)),
+          Field(std::move(field)) {};
+    ~ExpressionMemberAccess() = default;
 };
 
 class ExpressionLiteral : public StatementExpression
@@ -81,10 +88,10 @@ class ExpressionLiteral : public StatementExpression
     const LiteralKind Kind;
     std::variant<std::monostate, std::string, long long> Value;
 
-    ExpressionLiteral(std::string value)
-        : StatementExpression(ExpressionKind::Literal), Kind(LiteralKind::String), Value(value) {};
-    ExpressionLiteral(long long value)
-        : StatementExpression(ExpressionKind::Literal), Kind(LiteralKind::Number), Value(value) {};
+    ExpressionLiteral(std::string value, Range range)
+        : StatementExpression(ExpressionKind::Literal, range), Kind(LiteralKind::String), Value(value) {};
+    ExpressionLiteral(long long value, Range range)
+        : StatementExpression(ExpressionKind::Literal, range), Kind(LiteralKind::Number), Value(value) {};
     ~ExpressionLiteral() = default;
 };
 

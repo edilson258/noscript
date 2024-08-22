@@ -28,7 +28,7 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
         break;
     }
 
-    os << " at " << token.pos.line << ":" << token.pos.column;
+    os << " range " << token.range.Start << ":" << token.range.End;
 
     return os;
 }

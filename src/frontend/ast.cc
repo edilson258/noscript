@@ -82,6 +82,7 @@ void AstDumper::DumpStmt(const Statement *stmt)
 
 void AstDumper::DumpStmtExpr(const StatementExpression *expr)
 {
+    WriteLn("Range: ", expr->range.Start, ":", expr->range.End);
     switch (expr->Kind)
     {
     case ExpressionKind::Literal:
@@ -120,7 +121,7 @@ void AstDumper::DumpExprMemberAccess(const ExpressionMemberAccess *ma)
     unTab();
     WriteLn("Member:");
     tab();
-    DumpStmtExpr(ma->Member.get());
+    DumpStmtExpr(ma->Field.get());
     unTab();
     unTab();
 }

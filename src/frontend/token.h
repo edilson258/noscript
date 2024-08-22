@@ -3,7 +3,10 @@
 #include <cstddef>
 #include <ostream>
 #include <string>
+#include <tuple>
 #include <variant>
+
+#include "../range/range.h"
 
 enum class TokenKind
 {
@@ -38,9 +41,11 @@ class Token
   public:
     TokenKind kind;
     TokenData data;
-    TokenPosition pos;
+    Range range;
 
     Token() = default;
+    Token(TokenKind kind, TokenData data, Range range) : kind(kind), data(data), range(range) {};
+
     ~Token() = default;
 };
 
