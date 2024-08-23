@@ -10,10 +10,10 @@ std::shared_ptr<Type> StandardLibrary::makeConsole()
     std::unordered_map<std::string, std::shared_ptr<Type>> consoleFields;
 
     // log function
-    bool isVarArgs = true;
-    auto logFunctionReturnType = std::make_shared<Type>(TypeKind::Void);
-    std::vector<std::unique_ptr<Type>> logFunctionParams{};
-    auto logFunction = std::make_shared<TypeFunction>(isVarArgs, logFunctionReturnType, std::move(logFunctionParams));
+    bool logIsVarArgs = true;
+    std::vector<std::shared_ptr<Type>> logParams{};
+    auto logReturnType = std::make_shared<Type>(TypeKind::Void);
+    auto logFunction = std::make_shared<TypeFunction>(logIsVarArgs, logReturnType, logParams);
     consoleFields["log"] = logFunction;
 
     return std::make_shared<TypeObject>(consoleFields, "Console");

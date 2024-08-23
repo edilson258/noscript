@@ -1,17 +1,20 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "../utils.h"
 #include "checker.h"
 
 std::string errorMessagePrefix() { return "\033[1m\x1b[31mERROR\x1b[0m:"; }
+static inline void emitNoPropertyError(const std::string &code, std::string &property, const Range &range,
+                                       const std::shared_ptr<Type> &type);
 
 void Checker::Check(const std::unique_ptr<Ast> &ast)
 {
-    for (const std::unique_ptr<Statement> &stmt : ast.get()->block)
+    for (const std::unique_ptr<Statement> &stmt : ast->block)
     {
-        switch (stmt.get()->Kind)
+        switch (stmt->Kind)
         {
         case StatementKind::Expression:
             checkStatementExpression(static_cast<const StatementExpression *>(stmt.get()));
@@ -53,7 +56,7 @@ std::shared_ptr<Type> Checker::checkExpressionIdentifier(const ExpressionIdentif
     if (nullptr == typeValue)
     {
         std::cerr << errorMessagePrefix();
-        std::cerr << " Cannot find name '\x1b[4m\x1b[31m" << identifier->Label << "\x1b[0m'." << std::endl;
+        std::cerr << " Cannot find name `\x1b[4m\x1b[31m" << identifier->Label << "\x1b[0m`." << std::endl;
         std::cerr << std::endl << highlightError(raw, identifier->range.Start, identifier->range.End) << std::endl;
         return nullptr;
     }
@@ -72,23 +75,17 @@ std::shared_ptr<Type> Checker::checkExpressionMemberAccess(const ExpressionMembe
 
     if (TypeKind::Object != lhsType->GetKind())
     {
-        std::cerr << errorMessagePrefix();
-        std::cerr << " Property \"\x1b[4m\x1b[31m" << ma->Field.get()->Label << "\x1b[0m\"";
-        std::cerr << " does not exit on type '" << lhsType.get()->ToString() << "'." << std::endl;
-        std::cerr << std::endl << highlightError(raw, ma->Field->range.Start, ma->Field->range.End) << std::endl;
+        emitNoPropertyError(raw, ma->Field->Label, ma->Field->range, lhsType);
         return nullptr;
     }
 
     const TypeObject *object = static_cast<const TypeObject *>(lhsType.get());
 
-    std::shared_ptr<Type> accessProperty = object->GetField(ma->Field.get()->Label);
+    std::shared_ptr<Type> accessProperty = object->GetField(ma->Field->Label);
 
     if (nullptr == accessProperty)
     {
-        std::cerr << errorMessagePrefix();
-        std::cerr << " Property \"\x1b[4m\x1b[31m" << ma->Field.get()->Label << "\x1b[0m\"";
-        std::cerr << " does not exit on type '" << object->ToString() << "'." << std::endl;
-        std::cerr << std::endl << highlightError(raw, ma->Field->range.Start, ma->Field->range.End) << std::endl;
+        emitNoPropertyError(raw, ma->Field->Label, ma->Field->range, lhsType);
         return nullptr;
     }
 
@@ -108,22 +105,54 @@ std::shared_ptr<Type> Checker::checkExpressionFunctionCall(const ExpressionFunct
     {
         std::cerr << errorMessagePrefix();
         std::cerr << " This expression is not callable." << std::endl;
-        std::cerr << " Type '" << calleeType->ToString() << "' has no call signature" << std::endl;
+        std::cerr << " Type `" << calleeType << "` has no call signature" << std::endl;
         std::cerr << std::endl << highlightError(raw, call->range.Start, call->range.End) << std::endl;
         return nullptr;
     }
 
     const TypeFunction *calleeFunction = static_cast<const TypeFunction *>(calleeType.get());
+    const std::vector<std::shared_ptr<Type>> calleeFunctionParams = calleeFunction->GetParamaters();
 
-    if (calleeFunction->Parameters.size() > call->Args.size() ||
-        (!calleeFunction->IsVarArgs && calleeFunction->Parameters.size() != call->Args.size()))
+    if (calleeFunctionParams.size() > call->Args.size() ||
+        (!calleeFunction->GetIsVarArgs() && calleeFunctionParams.size() != call->Args.size()))
     {
         std::cerr << errorMessagePrefix();
-        std::cerr << " Expected " << calleeFunction->Parameters.size() << " arguments";
+        std::cerr << " Expected " << calleeFunctionParams.size() << " arguments";
         std::cerr << ", but got  " << call->Args.size() << std::endl;
         std::cerr << std::endl << highlightError(raw, call->range.Start, call->range.End) << std::endl;
         return nullptr;
     }
 
-    return calleeFunction->ReturnType;
+    for (const std::shared_ptr<Type> paramType : calleeFunctionParams)
+    {
+        for (const std::unique_ptr<StatementExpression> &arg : call->Args)
+        {
+            std::shared_ptr<Type> argType = checkStatementExpression(arg.get());
+
+            if (nullptr == argType)
+            {
+                continue;
+            }
+
+            if (!(*paramType.get() == *argType.get()))
+            {
+                std::cerr << errorMessagePrefix();
+                std::cerr << " Argument of type `" << *argType.get() << "`";
+                std::cerr << " is not assignable to parameter of type `" << *paramType.get() << "`." << std::endl;
+                std::cerr << std::endl << highlightError(raw, arg->range.Start, arg->range.End) << std::endl;
+                return nullptr;
+            }
+        }
+    }
+
+    return calleeFunction->GetReturnType();
+}
+
+static inline void emitNoPropertyError(const std::string &code, std::string &property, const Range &range,
+                                       const std::shared_ptr<Type> &type)
+{
+    std::cerr << errorMessagePrefix();
+    std::cerr << " Property `\x1b[4m\x1b[31m" << property << "\x1b[0m`";
+    std::cerr << " does not exit on type `" << *type.get() << "`." << std::endl;
+    std::cerr << std::endl << highlightError(code, range.Start, range.End) << std::endl;
 }

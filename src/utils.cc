@@ -7,7 +7,7 @@
 
 std::string highlightError(const std::string &code, int start, int end)
 {
-    return highlight(code, start, end, "\x1b[4m\x1b[31m");
+    return highlight(code, start, end, COLOR_RED_UNDERLINED);
 }
 
 std::string highlight(const std::string &code, int start, int end, std::string color)
@@ -31,12 +31,6 @@ std::string highlight(const std::string &code, int start, int end, std::string c
         {
             line_number_where_slice_begin = line_counter;
             index_where_slice_begin = begin_of_line;
-        }
-
-        if (curr_char == '\t')
-        {
-            cursor++;
-            continue;
         }
 
         if (curr_char == '\n')
@@ -66,7 +60,7 @@ std::string highlight(const std::string &code, int start, int end, std::string c
         {
             if (cursor >= start && cursor <= end)
             {
-                oss << color << code[cursor] << "\x1b[0m";
+                oss << color << code[cursor] << COLOR_RESET;
             }
             else
             {
