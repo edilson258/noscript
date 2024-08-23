@@ -82,7 +82,8 @@ void AstDumper::DumpStmt(const Statement *stmt)
 
 void AstDumper::DumpStmtExpr(const StatementExpression *expr)
 {
-    WriteLn("Range: ", expr->range.Start, ":", expr->range.End);
+    WriteLn(expr->location.GetLine(), ":", expr->location.GetColumn(), "-", expr->location.GetStart(), ":",
+            expr->location.GetEnd());
     switch (expr->Kind)
     {
     case ExpressionKind::Literal:

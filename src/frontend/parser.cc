@@ -43,11 +43,12 @@ std::unique_ptr<StatementExpression> Parser::parseStatementExpression(Precedence
     {
     case TokenKind::String:
         lhs = std::make_unique<ExpressionLiteral>(std::get<std::string>(m_CurrentToken.GetData()),
-                                                  m_CurrentToken.GetRange());
+                                                  m_CurrentToken.GetLocation());
+
         break;
     case TokenKind::Identifier:
         lhs = std::make_unique<ExpressionIdentifier>(std::get<std::string>(m_CurrentToken.GetData()),
-                                                     m_CurrentToken.GetRange());
+                                                     m_CurrentToken.GetLocation());
         break;
     default:
         std::cerr << "[Error] unexpected lhs expression: " << m_CurrentToken << std::endl;
@@ -77,7 +78,7 @@ std::unique_ptr<StatementExpression> Parser::parseStatementExpression(Precedence
 std::unique_ptr<ExpressionMemberAccess> Parser::parseExpressionMemberAccess(std::unique_ptr<StatementExpression> object)
 {
     bumpExpect(TokenKind::Dot);
-    Range range = object->range + m_CurrentToken.GetRange();
+    Location location = (Location)object->location + m_CurrentToken.GetLocation();
     auto expression = parseStatementExpression(Precedence::MemberAccess);
 
     if (ExpressionKind::Identifier != expression.get()->Kind)
@@ -87,16 +88,16 @@ std::unique_ptr<ExpressionMemberAccess> Parser::parseExpressionMemberAccess(std:
     }
 
     auto tmp = static_cast<ExpressionIdentifier *>(expression.get());
-    auto fieldIdentifier = std::make_unique<ExpressionIdentifier>(tmp->Label, tmp->range);
+    auto fieldIdentifier = std::make_unique<ExpressionIdentifier>(tmp->Label, tmp->location);
 
-    return std::make_unique<ExpressionMemberAccess>(std::move(object), std::move(fieldIdentifier), range);
+    return std::make_unique<ExpressionMemberAccess>(std::move(object), std::move(fieldIdentifier), location);
 }
 
 std::unique_ptr<ExpressionFunctionCall> Parser::parseExpressionFunctionCall(std::unique_ptr<StatementExpression> callee)
 {
     bumpExpect(TokenKind::LeftParent);
     std::vector<std::unique_ptr<StatementExpression>> args = parseListOfExpressions(TokenKind::RightParent);
-    auto range = callee->range + m_CurrentToken.GetRange();
+    auto range = (Location)callee->location + m_CurrentToken.GetLocation();
     bumpExpect(TokenKind::RightParent);
     return std::make_unique<ExpressionFunctionCall>(std::move(callee), std::move(args), range);
 }

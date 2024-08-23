@@ -6,7 +6,7 @@
 #include <tuple>
 #include <variant>
 
-#include "../range/range.h"
+#include "../location/location.h"
 
 enum class TokenKind
 {
@@ -29,17 +29,17 @@ class Token
   private:
     TokenKind m_Kind;
     TokenData m_Data;
-    Range m_Range;
+    Location m_Location;
 
   public:
     Token() = default;
-    Token(TokenKind kind, TokenData data, Range range) : m_Kind(kind), m_Data(data), m_Range(range) {};
+    Token(TokenKind kind, TokenData data, Location loc) : m_Kind(kind), m_Data(data), m_Location(loc) {};
 
     ~Token() = default;
 
-    Range GetRange() const { return m_Range; }
     TokenKind GetKind() const { return m_Kind; }
     TokenData GetData() const { return m_Data; }
+    Location GetLocation() const { return m_Location; }
 };
 
 std::ostream &operator<<(std::ostream &, const Token &);

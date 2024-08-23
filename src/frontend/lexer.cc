@@ -15,7 +15,7 @@ Token Lexer::GetNextToken()
 
     if (isEof())
     {
-        return Token(TokenKind::Eof, std::monostate(), createRange());
+        return Token(TokenKind::Eof, std::monostate(), Location(m_Line, m_Column, m_RangeStart, m_RangeEnd));
     }
 
     char currentChar = peekOne();
@@ -36,8 +36,11 @@ Token Lexer::GetNextToken()
 
     if (std::isalpha(currentChar) || '_' == currentChar)
     {
+        size_t startLine = m_Line;
+        size_t startColumn = m_Column;
         auto label = readWhile([](char x) { return std::isalnum(x) || '_' == x; });
-        Token identifier = Token(TokenKind::Identifier, label, createRange());
+        Token identifier =
+            Token(TokenKind::Identifier, label, Location(startLine, startColumn, m_RangeStart, m_RangeEnd));
         return identifier;
     }
 
@@ -46,13 +49,17 @@ Token Lexer::GetNextToken()
 
 Token Lexer::readSimpleToken(TokenKind kind)
 {
+    size_t startLine = m_Line;
+    size_t startColumn = m_Column;
     advanceOne();
-    Token simpleToken = Token(kind, std::monostate(), createRange());
-    return simpleToken;
+    return Token(kind, std::monostate(), Location(startLine, startColumn, m_RangeStart, m_RangeEnd));
 }
 
 Token Lexer::readStringToken()
 {
+    size_t startLine = m_Line;
+    size_t startColumn = m_Column;
+
     advanceOne(); // eat left '"'
 
     std::string label;
@@ -72,15 +79,14 @@ Token Lexer::readStringToken()
         if (isEof() || peekOne() == '\n')
         {
             std::cerr << "\033[1m\x1b[31mERROR\x1b[0m: unterminated string literal" << std::endl;
-            //                                              start - 1 to highlight the left '"'
-            std::cerr << std::endl << highlightError(m_Raw, start - 1, m_Cursor) << std::endl;
+            std::cerr << std::endl << highlightError(m_Raw, startColumn, m_Cursor) << std::endl;
             abort();
         }
 
         advanceOne();
     }
 
-    return Token(TokenKind::String, label, createRange());
+    return Token(TokenKind::String, label, Location(startLine, startColumn, m_RangeStart, m_RangeEnd));
 }
 
 std::string Lexer::readWhile(Predicate p)
@@ -114,7 +120,7 @@ void Lexer::advanceOne()
     if (peekOne() == '\n')
     {
         m_Line += 1;
-        m_Column = 0;
+        m_Column = 1;
     }
     else
     {
@@ -124,5 +130,4 @@ void Lexer::advanceOne()
 
 bool Lexer::isEof() { return m_Cursor >= m_Raw.length(); };
 char Lexer::peekOne() { return isEof() ? -1 : m_Raw.at(m_Cursor); }
-Range Lexer::createRange() { return Range(m_RangeStart, m_RangeEnd); }
 void Lexer::updateRangeStart() { m_RangeStart = m_Cursor; }

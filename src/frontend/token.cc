@@ -2,7 +2,6 @@
 
 std::ostream &operator<<(std::ostream &os, const Token &token)
 {
-
     switch (token.GetKind())
     {
     case TokenKind::Eof:
@@ -28,14 +27,15 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
         break;
     }
 
-    os << " range " << token.GetRange().Start << ":" << token.GetRange().End;
+    Location loc = token.GetLocation();
+    os << " line: " << loc.GetLine() << " column: " << loc.GetColumn();
+    os << " start: " << loc.GetStart() << " end: " << loc.GetEnd();
 
     return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const TokenKind &tokenKind)
 {
-
     switch (tokenKind)
     {
     case TokenKind::Eof:

@@ -34,13 +34,11 @@ class Lexer
 
     std::string readWhile(Predicate);
 
-    Range createRange();
-
   public:
     Lexer(const std::string &fileName, const std::string &raw) : m_FileName(fileName), m_Raw(raw)
     {
         m_Line = 1;
-        m_Column = 0;
+        m_Column = 1;
         m_Cursor = 0;
         m_RangeStart = 0;
     };
