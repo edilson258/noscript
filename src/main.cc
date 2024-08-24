@@ -7,7 +7,6 @@
 #include "frontend/ast.h"
 #include "frontend/lexer.h"
 #include "frontend/parser.h"
-#include "frontend/token.h"
 #include "stdlib/stdlib.h"
 
 std::string readFile(std::filesystem::path path);
@@ -28,7 +27,7 @@ int main(int argc, char *argv[])
     Parser parser(lexer);
     std::unique_ptr<Ast> ast = parser.Parse();
 
-    std::cout << *ast.get();
+    // std::cout << *ast.get();
 
     Checker checker(filePath, raw, StandardLibrary::GetBuiltins());
     checker.Check(ast);

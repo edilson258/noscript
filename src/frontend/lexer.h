@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 
+#include "../diagnostics/diagnostics.h"
 #include "token.h"
 
 using Predicate = std::function<bool(char)>;
@@ -34,8 +35,10 @@ class Lexer
 
     std::string readWhile(Predicate);
 
+    Diagnostics diagnostics;
+
   public:
-    Lexer(const std::string &fileName, const std::string &raw) : m_FileName(fileName), m_Raw(raw)
+    Lexer(const std::string &fileName, const std::string &raw) : m_FileName(fileName), m_Raw(raw), diagnostics()
     {
         m_Line = 1;
         m_Column = 1;

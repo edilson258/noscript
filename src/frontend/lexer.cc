@@ -4,7 +4,6 @@
 #include <iostream>
 #include <variant>
 
-#include "../utils.h"
 #include "lexer.h"
 #include "token.h"
 
@@ -78,8 +77,11 @@ Token Lexer::readStringToken()
 
         if (isEof() || peekOne() == '\n')
         {
-            std::cerr << "\033[1m\x1b[31mERROR\x1b[0m: unterminated string literal" << std::endl;
-            std::cerr << std::endl << highlightError(m_Raw, startColumn, m_Cursor) << std::endl;
+            DiagnosticError err(ErrorKind::UnterminatedString,
+                                Location(startLine, startColumn, m_RangeStart, m_RangeEnd),
+                                "Unterminated string literal");
+            diagnostics.RegisterError(err);
+            diagnostics.EmitAll(std::cerr, (std::string &)m_FileName, (std::string &)m_Raw);
             abort();
         }
 
@@ -120,7 +122,7 @@ void Lexer::advanceOne()
     if (peekOne() == '\n')
     {
         m_Line += 1;
-        m_Column = 1;
+        m_Column = 0;
     }
     else
     {

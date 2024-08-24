@@ -1,14 +1,11 @@
+#include <cstddef>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
-#include "../utils.h"
 #include "checker.h"
-
-std::string errorMessagePrefix() { return "\033[1m\x1b[31mERROR\x1b[0m:"; }
-void emitNoPropertyError(const std::string &code, std::string &property, const Location loc,
-                         const std::shared_ptr<Type> &type);
 
 void Checker::Check(const std::unique_ptr<Ast> &ast)
 {
@@ -21,6 +18,8 @@ void Checker::Check(const std::unique_ptr<Ast> &ast)
             break;
         }
     }
+
+    diagnostics.EmitAll(std::cerr, fileName, raw);
 }
 
 std::shared_ptr<Type> Checker::checkStatementExpression(const StatementExpression *expression)
@@ -55,10 +54,7 @@ std::shared_ptr<Type> Checker::checkExpressionIdentifier(const ExpressionIdentif
 
     if (nullptr == typeValue)
     {
-        std::cerr << errorMessagePrefix();
-        std::cerr << " Cannot find name `\x1b[4m\x1b[31m" << identifier->Label << "\x1b[0m`." << std::endl;
-        std::cerr << std::endl
-                  << highlightError(raw, identifier->location.GetStart(), identifier->location.GetEnd()) << std::endl;
+        emitErrorNameNotDefined((Location &)identifier->location, (std::string &)identifier->Label);
         return nullptr;
     }
 
@@ -76,21 +72,21 @@ std::shared_ptr<Type> Checker::checkExpressionMemberAccess(const ExpressionMembe
 
     if (TypeKind::Object != lhsType->GetKind())
     {
-        emitNoPropertyError(raw, ma->Field->Label, ma->Field->location, lhsType);
+        emitErrorNoField((Location &)ma->Field->location, lhsType, ma->Field->Label);
         return nullptr;
     }
 
     const TypeObject *object = static_cast<const TypeObject *>(lhsType.get());
 
-    std::shared_ptr<Type> accessProperty = object->GetField(ma->Field->Label);
+    std::shared_ptr<Type> field = object->GetField(ma->Field->Label);
 
-    if (nullptr == accessProperty)
+    if (nullptr == field)
     {
-        emitNoPropertyError(raw, ma->Field->Label, ma->Field->location, lhsType);
+        emitErrorNoField((Location &)ma->Field->location, lhsType, ma->Field->Label);
         return nullptr;
     }
 
-    return accessProperty;
+    return field;
 }
 
 std::shared_ptr<Type> Checker::checkExpressionFunctionCall(const ExpressionFunctionCall *call)
@@ -104,10 +100,7 @@ std::shared_ptr<Type> Checker::checkExpressionFunctionCall(const ExpressionFunct
 
     if (TypeKind::Function != calleeType->GetKind())
     {
-        std::cerr << errorMessagePrefix();
-        std::cerr << " This expression is not callable." << std::endl;
-        std::cerr << " Type `" << calleeType << "` has no call signature" << std::endl;
-        std::cerr << std::endl << highlightError(raw, call->location.GetStart(), call->location.GetEnd()) << std::endl;
+        emitErrorNotCallable((Location &)call->location, calleeType);
         return nullptr;
     }
 
@@ -117,10 +110,7 @@ std::shared_ptr<Type> Checker::checkExpressionFunctionCall(const ExpressionFunct
     if (calleeFunctionParams.size() > call->Args.size() ||
         (!calleeFunction->GetIsVarArgs() && calleeFunctionParams.size() != call->Args.size()))
     {
-        std::cerr << errorMessagePrefix();
-        std::cerr << " Expected " << calleeFunctionParams.size() << " arguments";
-        std::cerr << ", but got  " << call->Args.size() << std::endl;
-        std::cerr << std::endl << highlightError(raw, call->location.GetStart(), call->location.GetEnd()) << std::endl;
+        emitErrorArgsCountNoMatch((Location &)call->location, calleeFunctionParams.size(), call->Args.size());
         return nullptr;
     }
 
@@ -132,16 +122,13 @@ std::shared_ptr<Type> Checker::checkExpressionFunctionCall(const ExpressionFunct
 
             if (nullptr == argType)
             {
+                // ignore and continue because the error was already reported down the tree
                 continue;
             }
 
             if (!(*paramType.get() == *argType.get()))
             {
-                std::cerr << errorMessagePrefix();
-                std::cerr << " Argument of type `" << *argType.get() << "`";
-                std::cerr << " is not assignable to parameter of type `" << *paramType.get() << "`." << std::endl;
-                std::cerr << std::endl
-                          << highlightError(raw, arg->location.GetStart(), arg->location.GetEnd()) << std::endl;
+                emitErrorArgsTypesNoMatch((Location &)arg->location, paramType, argType);
                 return nullptr;
             }
         }
@@ -150,11 +137,42 @@ std::shared_ptr<Type> Checker::checkExpressionFunctionCall(const ExpressionFunct
     return calleeFunction->GetReturnType();
 }
 
-void emitNoPropertyError(const std::string &code, std::string &property, const Location loc,
-                         const std::shared_ptr<Type> &type)
+void Checker::emitErrorNoField(Location &location, std::shared_ptr<Type> object, std::string &field)
 {
-    std::cerr << errorMessagePrefix();
-    std::cerr << " Property `\x1b[4m\x1b[31m" << property << "\x1b[0m`";
-    std::cerr << " does not exit on type `" << *type.get() << "`." << std::endl;
-    std::cerr << std::endl << highlightError(code, loc.GetStart(), loc.GetEnd()) << std::endl;
+    std::ostringstream messageStream;
+    messageStream << "Field `" << field << "` ";
+    messageStream << "does not exit on type `" << *object.get() << "`.";
+    diagnostics.RegisterError(DiagnosticError(ErrorKind::UnboundProperty, location, messageStream.str()));
+}
+
+void Checker::emitErrorNameNotDefined(Location &location, std::string &name)
+{
+    std::ostringstream messageStream;
+    messageStream << "Cannot find name `" << name << "`.";
+    diagnostics.RegisterError(DiagnosticError(ErrorKind::UnboundName, location, messageStream.str()));
+}
+
+void Checker::emitErrorArgsCountNoMatch(Location &location, size_t expectedCount, size_t providedCount)
+{
+    std::ostringstream messageStream;
+    messageStream << "Expected " << expectedCount << " arguments";
+    messageStream << "but got " << providedCount << ".";
+    diagnostics.RegisterError(DiagnosticError(ErrorKind::ArgumentsCountNoMatch, location, messageStream.str()));
+}
+
+void Checker::emitErrorNotCallable(Location &location, std::shared_ptr<Type> calleeType)
+{
+    std::ostringstream messageStream;
+    messageStream << "This expression is not callable." << std::endl;
+    messageStream << "  Type `" << *calleeType.get() << "` has no call signature.";
+    diagnostics.RegisterError(DiagnosticError(ErrorKind::ArgumentsCountNoMatch, location, messageStream.str()));
+}
+
+void Checker::emitErrorArgsTypesNoMatch(Location &location, std::shared_ptr<Type> expectedType,
+                                        std::shared_ptr<Type> providedType)
+{
+    std::ostringstream messageStream;
+    messageStream << "Argument of type `" << *providedType.get() << "`";
+    std::cerr << " is not assignable to parameter of type `" << *expectedType.get() << "`.";
+    diagnostics.RegisterError(DiagnosticError(ErrorKind::ArgumentsTypesNoMatch, location, messageStream.str()));
 }
