@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.29.5)
 project(
   NoScript
   VERSION 0.1.0
-  DESCRIPTION "The LLVM Typescript compiler"
+  DESCRIPTION "JavaScript static type checker"
   LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
