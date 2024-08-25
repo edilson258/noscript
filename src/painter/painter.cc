@@ -1,6 +1,7 @@
-#include "painter.h"
 #include <sstream>
 #include <string>
+
+#include "painter.h"
 
 #define COLOR_RESET "\x1b[0m"
 #define COLOR_RED_BOLD "\x1b[1;31m"
@@ -86,6 +87,7 @@ std::string Painter::HighlightRange(const std::string &code, size_t begin, size_
         {
             if (j >= begin && j <= end)
             {
+                // under the text to highlight
                 oss << customFill;
             }
             else
@@ -93,7 +95,7 @@ std::string Painter::HighlightRange(const std::string &code, size_t begin, size_
                 oss << " ";
             }
         }
-        oss << "\n";
+        oss << std::endl;
     }
 
     return oss.str();

@@ -9,8 +9,7 @@ void Diagnostics::displayError(std::ostream &os, const std::string &fileName, co
     const Location &loc = err.GetLocation();
     os << Painter::Paint(fileName, Color::Cyan) << ":" << loc.GetLine() << ":" << loc.GetColumn() << " ";
     os << Painter::Paint("ERROR", Color::RedBold) << " ";
-    os << Painter::Paint("JCE", Color::BrownLow);
-    os << Painter::Paint(std::to_string(static_cast<int>(err.GetKind())).append(":"), Color::BrownLow) << " ";
+    os << Painter::Paint("JCE" + std::to_string(static_cast<int>(err.GetKind())) + ":", Color::BrownLow) << " ";
     os << err.GetMessage() << std::endl << std::endl;
     os << Painter::HighlightRange(fileContents, loc.GetStart(), loc.GetEnd(), "\x1b[31m~\x1b[0m") << std::endl;
 }
@@ -22,8 +21,7 @@ void Diagnostics::EmitAll(std::ostream &os, const std::string &fileName, const s
         displayError(os, fileName, fileContents, err);
     }
 
-    os << Painter::Paint(std::string("Done. ").append(std::to_string(m_Diagnostics.size()).append(" erros found")),
-                         Color::BrownLow);
+    os << Painter::Paint("Done. " + std::to_string(m_Diagnostics.size()) + " errors found", Color::BrownLow);
     os << std::endl;
 }
 

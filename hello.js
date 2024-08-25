@@ -1,2 +1,2 @@
 console.loh("Hello, world!");
-Math.10();
+Math.Ha();
