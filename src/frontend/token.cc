@@ -22,6 +22,9 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
     case TokenKind::Comma:
         os << "Symbol: ,";
         break;
+    case TokenKind::Equal:
+        os << "Symbol: =";
+        break;
     case TokenKind::String:
         os << "String: " << std::get<std::string>(token.GetData());
         break;
@@ -30,6 +33,9 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
         break;
     case TokenKind::Identifier:
         os << "Identifier: " << std::get<std::string>(token.GetData());
+        break;
+    case TokenKind::Let:
+        os << "Keyword: let";
         break;
     }
 
@@ -62,6 +68,9 @@ std::ostream &operator<<(std::ostream &os, const TokenKind &tokenKind)
     case TokenKind::Comma:
         os << "Symbol: ,";
         break;
+    case TokenKind::Equal:
+        os << "Symbol: =";
+        break;
     case TokenKind::String:
         os << "String Literal";
         break;
@@ -70,6 +79,9 @@ std::ostream &operator<<(std::ostream &os, const TokenKind &tokenKind)
         break;
     case TokenKind::Identifier:
         os << "Identifier";
+        break;
+    case TokenKind::Let:
+        os << "Keyword: let";
         break;
     }
 

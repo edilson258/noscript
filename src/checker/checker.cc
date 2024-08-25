@@ -13,6 +13,8 @@ void Checker::Check(const std::unique_ptr<Ast> &ast)
     {
         switch (stmt->Kind)
         {
+        case StatementKind::VariableDeclaration:
+            break;
         case StatementKind::Expression:
             checkStatementExpression(static_cast<const StatementExpression *>(stmt.get()));
             break;

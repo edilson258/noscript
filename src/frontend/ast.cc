@@ -40,6 +40,7 @@ class AstDumper
 
     void DumpSmtBlock(const std::vector<std::unique_ptr<Statement>> &);
     void DumpStmt(const Statement *);
+    void DumpStmtVarDecl(const StatementVariableDeclaration *);
     void DumpStmtExpr(const StatementExpression *);
     void DumpExprLiteral(const ExpressionLiteral *);
     void DumpExprIdentifier(const ExpressionIdentifier *);
@@ -74,10 +75,29 @@ void AstDumper::DumpStmt(const Statement *stmt)
     switch (stmt->Kind)
     {
     case StatementKind::Expression:
-    {
         return DumpStmtExpr(static_cast<const StatementExpression *>(stmt));
+    case StatementKind::VariableDeclaration:
+        return DumpStmtVarDecl(static_cast<const StatementVariableDeclaration *>(stmt));
     }
+}
+
+void AstDumper::DumpStmtVarDecl(const StatementVariableDeclaration *decl)
+{
+    WriteLn("Variable declaration:");
+    tab();
+    WriteLn("Name(\"", decl->GetName(), "\")");
+    WriteLn("INIT:");
+    tab();
+    if (decl->GetInitializer().has_value())
+    {
+        DumpStmtExpr(decl->GetInitializer().value().get());
     }
+    else
+    {
+        WriteLn("<not initialized>");
+    }
+    unTab();
+    unTab();
 }
 
 void AstDumper::DumpStmtExpr(const StatementExpression *expr)

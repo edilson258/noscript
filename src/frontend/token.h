@@ -19,9 +19,12 @@ enum class TokenKind
 
     Dot,
     Comma,
+    Equal,
     Semicolon,
     LeftParent,
     RightParent,
+
+    Let,
 };
 
 using TokenData = std::variant<std::monostate, std::string, long double>;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <variant>
@@ -11,7 +12,8 @@
 
 enum class StatementKind
 {
-    Expression = 1
+    Expression = 1,
+    VariableDeclaration,
 };
 
 enum class ExpressionKind
@@ -26,6 +28,13 @@ enum class LiteralKind
 {
     String = 1,
     Number = 2
+};
+
+enum class VariableDeclarator
+{
+    LET = 1,
+    VAR,
+    CONST,
 };
 
 class Statement
@@ -96,6 +105,24 @@ class ExpressionLiteral : public StatementExpression
     ExpressionLiteral(long double value, Location location)
         : StatementExpression(ExpressionKind::Literal, location), Kind(LiteralKind::Number), Value(value) {};
     ~ExpressionLiteral() = default;
+};
+
+class StatementVariableDeclaration : public Statement
+{
+  private:
+    const std::string m_Name;
+    const VariableDeclarator m_Declarator;
+    const std::optional<std::unique_ptr<StatementExpression>> m_Initializer;
+
+  public:
+    StatementVariableDeclaration(Location location, std::string name, VariableDeclarator declarator,
+                                 std::optional<std::unique_ptr<StatementExpression>> init)
+        : Statement(StatementKind::VariableDeclaration, location), m_Name(name), m_Declarator(declarator),
+          m_Initializer(std::move(init)) {};
+
+    const std::string GetName() const { return m_Name; }
+    VariableDeclarator GetDeclarator() const { return m_Declarator; }
+    const std::optional<std::unique_ptr<StatementExpression>> &GetInitializer() const { return m_Initializer; };
 };
 
 class Ast

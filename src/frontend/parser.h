@@ -29,6 +29,7 @@ class Parser
     void bumpExpect(TokenKind, Location, std::string);
 
     std::unique_ptr<Statement> parseStatement();
+    std::unique_ptr<StatementVariableDeclaration> parseStatementVariableDeclaration();
     std::unique_ptr<StatementExpression> parseStatementExpression(Precedence);
     std::unique_ptr<ExpressionMemberAccess> parseExpressionMemberAccess(std::unique_ptr<StatementExpression>);
     std::unique_ptr<ExpressionFunctionCall> parseExpressionFunctionCall(std::unique_ptr<StatementExpression>);

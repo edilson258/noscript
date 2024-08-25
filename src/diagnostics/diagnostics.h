@@ -20,6 +20,7 @@ enum ErrorKind
     UnexpectedArgsSeparator = 1007,
     ExpectedFieldName = 1008,
     UnexpectedLeftSideExpression = 1009,
+    ExpectedVariableName = 1010,
 };
 
 class DiagnosticError

@@ -32,6 +32,8 @@ Token Lexer::GetNextToken()
         return readSimpleToken(TokenKind::Semicolon);
     case ',':
         return readSimpleToken(TokenKind::Comma);
+    case '=':
+        return readSimpleToken(TokenKind::Equal);
     case '"':
         return readStringToken();
     }
@@ -41,6 +43,12 @@ Token Lexer::GetNextToken()
         size_t startLine = m_Line;
         size_t startColumn = m_Column;
         std::string label = readWhile([](char x) { return std::isalnum(x) || '_' == x; });
+
+        if ("let" == label)
+        {
+            return Token(TokenKind::Let, std::monostate(), Location(startLine, startColumn, m_RangeStart, m_RangeEnd));
+        }
+
         return Token(TokenKind::Identifier, label, Location(startLine, startColumn, m_RangeStart, m_RangeEnd));
     }
 

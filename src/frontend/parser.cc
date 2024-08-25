@@ -27,13 +27,49 @@ std::unique_ptr<Statement> Parser::parseStatement()
 {
     switch (m_CurrentToken.GetKind())
     {
+    case TokenKind::Let:
+        return parseStatementVariableDeclaration();
     default:
     {
-        auto expression = parseStatementExpression(Precedence::Lowest);
+        std::unique_ptr<StatementExpression> expression = parseStatementExpression(Precedence::Lowest);
         bumpExpect(TokenKind::Semicolon, expression->location, "Expected `;` after an expression");
         return static_cast<std::unique_ptr<Statement>>(std::move(expression));
     }
     }
+}
+
+std::unique_ptr<StatementVariableDeclaration> Parser::parseStatementVariableDeclaration()
+{
+    Location location = m_CurrentToken.GetLocation();
+
+    VariableDeclarator declarator;
+    if (TokenKind::Let == m_CurrentToken.GetKind())
+    {
+        declarator = VariableDeclarator::LET;
+    }
+    bump();
+
+    if (TokenKind::Identifier != m_CurrentToken.GetKind())
+    {
+        DiagnosticError error(ErrorKind::ExpectedVariableName, m_CurrentToken.GetLocation(), "Expected identifier");
+        diagnostics.EmitNow(std::cerr, m_Lexer.GetFileName(), m_Lexer.GetFileContents(), error);
+        abort();
+    }
+
+    std::string name = std::get<std::string>(m_CurrentToken.GetData());
+    location = location + m_CurrentToken.GetLocation();
+    bump();
+
+    if (TokenKind::Equal != m_CurrentToken.GetKind())
+    {
+        return std::make_unique<StatementVariableDeclaration>(location, name, declarator, std::nullopt);
+    }
+
+    bump();
+
+    std::unique_ptr<StatementExpression> init = parseStatementExpression(Precedence::Lowest);
+    bump(); // eat ';'
+    return std::make_unique<StatementVariableDeclaration>(location, name, declarator, std::move(init));
 }
 
 std::unique_ptr<StatementExpression> Parser::parseStatementExpression(Precedence precedence)

@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     Parser parser(lexer);
     std::unique_ptr<Ast> ast = parser.Parse();
 
-    // std::cout << *ast.get();
+    std::cout << *ast.get();
 
     Checker checker(filePath, raw, StandardLibrary::GetBuiltins());
     checker.Check(ast);
