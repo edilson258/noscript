@@ -5,5 +5,8 @@ project(
   DESCRIPTION "The LLVM Typescript compiler"
   LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 file(GLOB_RECURSE files "src/*.cc")
 add_executable(noscript ${files})
