@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <variant>
 
 #include "lexer.h"
@@ -37,10 +38,16 @@ Token Lexer::GetNextToken()
     {
         size_t startLine = m_Line;
         size_t startColumn = m_Column;
-        auto label = readWhile([](char x) { return std::isalnum(x) || '_' == x; });
-        Token identifier =
-            Token(TokenKind::Identifier, label, Location(startLine, startColumn, m_RangeStart, m_RangeEnd));
-        return identifier;
+        std::string label = readWhile([](char x) { return std::isalnum(x) || '_' == x; });
+        return Token(TokenKind::Identifier, label, Location(startLine, startColumn, m_RangeStart, m_RangeEnd));
+    }
+
+    if (std::isdigit(currentChar))
+    {
+        size_t startLine = m_Line;
+        size_t startColumn = m_Column;
+        long double number = std::stold(readWhile([](char x) { return std::isdigit(x) || x == '.'; }));
+        return Token(TokenKind::Number, number, Location(startLine, startColumn, m_RangeStart, m_RangeEnd));
     }
 
     abort();
@@ -67,7 +74,6 @@ Token Lexer::readStringToken()
 
     while (1)
     {
-
         if (peekOne() == '"')
         {
             label = m_Raw.substr(start, m_Cursor - start);

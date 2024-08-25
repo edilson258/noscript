@@ -20,7 +20,7 @@ std::ostream &Type::Dump(std::ostream &os) const
     case TypeKind::String:
         os << "string";
         break;
-    case TypeKind::Integer:
+    case TypeKind::Number:
         os << "integer";
         break;
     case TypeKind::Object:

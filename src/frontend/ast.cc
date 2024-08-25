@@ -102,7 +102,7 @@ void AstDumper::DumpExprLiteral(const ExpressionLiteral *literal)
     switch (literal->Kind)
     {
     case LiteralKind::Number:
-        WriteLn("Literal(", std::get<long long>(literal->Value), ")");
+        WriteLn("Literal(", std::get<long double>(literal->Value), ")");
         break;
     case LiteralKind::String:
         WriteLn("Literal(\"", std::get<std::string>(literal->Value), "\")");

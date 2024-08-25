@@ -22,6 +22,9 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
     case TokenKind::String:
         os << "String: " << std::get<std::string>(token.GetData());
         break;
+    case TokenKind::Number:
+        os << "Number: " << std::get<long double>(token.GetData());
+        break;
     case TokenKind::Identifier:
         os << "Identifier: " << std::get<std::string>(token.GetData());
         break;
@@ -55,6 +58,9 @@ std::ostream &operator<<(std::ostream &os, const TokenKind &tokenKind)
         break;
     case TokenKind::String:
         os << "String Literal";
+        break;
+    case TokenKind::Number:
+        os << "Number Literal";
         break;
     case TokenKind::Identifier:
         os << "Identifier";

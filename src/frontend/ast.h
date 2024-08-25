@@ -89,11 +89,11 @@ class ExpressionLiteral : public StatementExpression
 {
   public:
     const LiteralKind Kind;
-    std::variant<std::monostate, std::string, long long> Value;
+    std::variant<std::monostate, std::string, long double> Value;
 
     ExpressionLiteral(std::string value, Location location)
         : StatementExpression(ExpressionKind::Literal, location), Kind(LiteralKind::String), Value(value) {};
-    ExpressionLiteral(long long value, Location location)
+    ExpressionLiteral(long double value, Location location)
         : StatementExpression(ExpressionKind::Literal, location), Kind(LiteralKind::Number), Value(value) {};
     ~ExpressionLiteral() = default;
 };

@@ -42,7 +42,7 @@ std::shared_ptr<Type> Checker::checkExpressionLiteral(const ExpressionLiteral *l
     switch (literal->Kind)
     {
     case LiteralKind::Number:
-        return std::make_shared<Type>(TypeKind::Integer);
+        return std::make_shared<Type>(TypeKind::Number);
     case LiteralKind::String:
         return std::make_shared<Type>(TypeKind::String);
     }
@@ -155,7 +155,7 @@ void Checker::emitErrorNameNotDefined(Location &location, std::string &name)
 void Checker::emitErrorArgsCountNoMatch(Location &location, size_t expectedCount, size_t providedCount)
 {
     std::ostringstream messageStream;
-    messageStream << "Expected " << expectedCount << " arguments";
+    messageStream << "Expected " << expectedCount << " arguments ";
     messageStream << "but got " << providedCount << ".";
     diagnostics.RegisterError(DiagnosticError(ErrorKind::ArgumentsCountNoMatch, location, messageStream.str()));
 }

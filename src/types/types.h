@@ -11,7 +11,7 @@ enum class TypeKind
 {
     Void = 1,
     String,
-    Integer,
+    Number,
     Object,
     Function,
 };

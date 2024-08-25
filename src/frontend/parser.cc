@@ -46,6 +46,11 @@ std::unique_ptr<StatementExpression> Parser::parseStatementExpression(Precedence
                                                   m_CurrentToken.GetLocation());
 
         break;
+    case TokenKind::Number:
+        lhs = std::make_unique<ExpressionLiteral>(std::get<long double>(m_CurrentToken.GetData()),
+                                                  m_CurrentToken.GetLocation());
+
+        break;
     case TokenKind::Identifier:
         lhs = std::make_unique<ExpressionIdentifier>(std::get<std::string>(m_CurrentToken.GetData()),
                                                      m_CurrentToken.GetLocation());

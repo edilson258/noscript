@@ -13,6 +13,7 @@ enum class TokenKind
     Eof = 1,
 
     String,
+    Number,
 
     Identifier,
 
@@ -22,7 +23,7 @@ enum class TokenKind
     RightParent,
 };
 
-using TokenData = std::variant<std::monostate, std::string>;
+using TokenData = std::variant<std::monostate, std::string, long double>;
 
 class Token
 {
