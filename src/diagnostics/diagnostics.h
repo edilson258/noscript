@@ -25,12 +25,12 @@ enum ErrorKind
 class DiagnosticError
 {
   private:
-    ErrorKind m_Kind;
-    Location m_Location;
-    std::string m_Message;
+    const ErrorKind m_Kind;
+    const Location &m_Location;
+    const std::string m_Message;
 
   public:
-    DiagnosticError(ErrorKind kind, Location location, std::string message)
+    DiagnosticError(const ErrorKind kind, const Location &location, const std::string message)
         : m_Kind(kind), m_Location(location), m_Message(message) {};
 
     const ErrorKind &GetKind() const { return m_Kind; }
