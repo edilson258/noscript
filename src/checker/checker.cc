@@ -173,6 +173,6 @@ void Checker::emitErrorArgsTypesNoMatch(Location &location, std::shared_ptr<Type
 {
     std::ostringstream messageStream;
     messageStream << "Argument of type `" << *providedType.get() << "`";
-    std::cerr << " is not assignable to parameter of type `" << *expectedType.get() << "`.";
+    messageStream << " is not assignable to parameter of type `" << *expectedType.get() << "`.";
     diagnostics.RegisterError(DiagnosticError(ErrorKind::ArgumentsTypesNoMatch, location, messageStream.str()));
 }

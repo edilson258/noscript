@@ -1,5 +1,5 @@
 console.loh("Hello, world!");
 console.log.he();
 console();
-Math.pow(3.14159);
+Math.pow(Math.sqrt(144), "Hi");
 Hello(x);

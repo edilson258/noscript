@@ -31,6 +31,16 @@ std::shared_ptr<Type> StandardLibrary::makeMath()
     auto powFunction = std::make_shared<TypeFunction>(powIsVarArgs, powReturnType, powParams);
     mathFields["pow"] = powFunction;
 
+    // sqrt function
+    bool sqrtIsVarArgs = false;
+    std::vector<std::shared_ptr<Type>> sqrtParams{std::make_shared<Type>(TypeKind::Number)};
+    auto sqrtReturnType = std::make_shared<Type>(TypeKind::Number);
+    auto sqrtFunction = std::make_shared<TypeFunction>(sqrtIsVarArgs, sqrtReturnType, sqrtParams);
+    mathFields["sqrt"] = sqrtFunction;
+
+    // PI constant
+    mathFields["PI"] = std::make_shared<Type>(TypeKind::Number);
+
     return std::make_shared<TypeObject>(mathFields, "Math");
 }
 
