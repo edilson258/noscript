@@ -11,8 +11,8 @@ class Checker
 {
   private:
     Scope scope;
-    std::string &raw;
-    std::string &fileName;
+    const std::string &raw;
+    const std::string &fileName;
 
     Diagnostics diagnostics;
 
@@ -22,16 +22,17 @@ class Checker
     std::shared_ptr<Type> checkExpressionMemberAccess(const ExpressionMemberAccess *);
     std::shared_ptr<Type> checkExpressionFunctionCall(const ExpressionFunctionCall *);
 
-    void emitErrorNameNotDefined(Location &location, std::string &label);
-    void emitErrorNotCallable(Location &location, std::shared_ptr<Type> calleeType);
-    void emitErrorNoField(Location &location, std::shared_ptr<Type> object, std::string &label);
-    void emitErrorArgsCountNoMatch(Location &location, size_t expectedCount, size_t providedCount);
-    void emitErrorArgsTypesNoMatch(Location &location, std::shared_ptr<Type> expectedType,
+    void emitErrorNameNotDefined(const Location &location, const std::string &label);
+    void emitErrorNotCallable(const Location &location, std::shared_ptr<Type> calleeType);
+    void emitErrorNoField(const Location &location, std::shared_ptr<Type> object, std::string &label);
+    void emitErrorArgsCountNoMatch(const Location &location, size_t expectedCount, size_t providedCount);
+    void emitErrorArgsTypesNoMatch(const Location &location, std::shared_ptr<Type> expectedType,
                                    std::shared_ptr<Type> providedType);
 
   public:
-    Checker(std::string &fileName, std::string &raw, std::unordered_map<std::string, std::shared_ptr<Type>> entries)
-        : scope(entries), fileName(fileName), raw(raw) {};
+    Checker(const std::string &fileName, const std::string &raw,
+            std::unordered_map<std::string, std::shared_ptr<Type>> entries)
+        : scope(entries), raw(raw), fileName(fileName) {};
 
     void Check(const std::unique_ptr<Ast> &);
 };

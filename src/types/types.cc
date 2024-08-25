@@ -44,7 +44,7 @@ std::ostream &TypeObject::Dump(std::ostream &os) const
 
     os << "{";
 
-    int i = 0;
+    size_t i = 0;
     for (std::pair<std::string, std::shared_ptr<Type>> entry : Entries)
     {
         os << entry.first;
@@ -68,7 +68,7 @@ std::ostream &TypeFunction::Dump(std::ostream &os) const
 {
     os << "(";
 
-    int i = 0;
+    size_t i = 0;
     for (std::shared_ptr<Type> paramType : m_Parameters)
     {
         os << *paramType.get();
@@ -159,9 +159,9 @@ bool TypeFunction::operator==(const Type &other) const
         return false;
     }
 
-    for (const std::shared_ptr<Type> paramType : m_Parameters)
+    for (const std::shared_ptr<Type> &paramType : m_Parameters)
     {
-        for (const std::shared_ptr<Type> otherParamType : otherFunction.m_Parameters)
+        for (const std::shared_ptr<Type> &otherParamType : otherFunction.m_Parameters)
         {
             if (!(*paramType.get() == *otherParamType.get()))
             {

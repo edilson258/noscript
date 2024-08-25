@@ -38,7 +38,7 @@ class Lexer
     Diagnostics diagnostics;
 
   public:
-    Lexer(const std::string &fileName, const std::string &raw) : m_FileName(fileName), m_Raw(raw), diagnostics()
+    Lexer(const std::string &fileName, const std::string &raw) : m_Raw(raw), m_FileName(fileName), diagnostics()
     {
         m_Line = 1;
         m_Column = 1;

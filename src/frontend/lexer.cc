@@ -138,5 +138,5 @@ void Lexer::advanceOne()
 }
 
 bool Lexer::isEof() { return m_Cursor >= m_Raw.length(); };
-char Lexer::peekOne() { return isEof() ? -1 : m_Raw.at(m_Cursor); }
+char Lexer::peekOne() { return isEof() ? '\00' : m_Raw.at(m_Cursor); }
 void Lexer::updateRangeStart() { m_RangeStart = m_Cursor; }

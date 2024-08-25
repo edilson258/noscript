@@ -44,7 +44,7 @@ class TypeObject : public Type
     const std::unordered_map<std::string, std::shared_ptr<Type>> Entries;
 
     TypeObject(std::unordered_map<std::string, std::shared_ptr<Type>> entries, std::optional<std::string> typeName)
-        : Type(TypeKind::Object), Entries(entries), m_TypeName(typeName) {};
+        : Type(TypeKind::Object), m_TypeName(typeName), Entries(entries) {};
 
     ~TypeObject() = default;
 

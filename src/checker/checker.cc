@@ -54,7 +54,7 @@ std::shared_ptr<Type> Checker::checkExpressionIdentifier(const ExpressionIdentif
 
     if (nullptr == typeValue)
     {
-        emitErrorNameNotDefined((Location &)identifier->location, (std::string &)identifier->Label);
+        emitErrorNameNotDefined(identifier->location, identifier->Label);
         return nullptr;
     }
 
@@ -72,7 +72,7 @@ std::shared_ptr<Type> Checker::checkExpressionMemberAccess(const ExpressionMembe
 
     if (TypeKind::Object != lhsType->GetKind())
     {
-        emitErrorNoField((Location &)ma->Field->location, lhsType, ma->Field->Label);
+        emitErrorNoField(ma->Field->location, lhsType, ma->Field->Label);
         return nullptr;
     }
 
@@ -82,7 +82,7 @@ std::shared_ptr<Type> Checker::checkExpressionMemberAccess(const ExpressionMembe
 
     if (nullptr == field)
     {
-        emitErrorNoField((Location &)ma->Field->location, lhsType, ma->Field->Label);
+        emitErrorNoField(ma->Field->location, lhsType, ma->Field->Label);
         return nullptr;
     }
 
@@ -100,7 +100,7 @@ std::shared_ptr<Type> Checker::checkExpressionFunctionCall(const ExpressionFunct
 
     if (TypeKind::Function != calleeType->GetKind())
     {
-        emitErrorNotCallable((Location &)call->location, calleeType);
+        emitErrorNotCallable(call->location, calleeType);
         return nullptr;
     }
 
@@ -110,11 +110,11 @@ std::shared_ptr<Type> Checker::checkExpressionFunctionCall(const ExpressionFunct
     if (calleeFunctionParams.size() > call->Args.size() ||
         (!calleeFunction->GetIsVarArgs() && calleeFunctionParams.size() != call->Args.size()))
     {
-        emitErrorArgsCountNoMatch((Location &)call->location, calleeFunctionParams.size(), call->Args.size());
+        emitErrorArgsCountNoMatch(call->location, calleeFunctionParams.size(), call->Args.size());
         return nullptr;
     }
 
-    for (const std::shared_ptr<Type> paramType : calleeFunctionParams)
+    for (const std::shared_ptr<Type> &paramType : calleeFunctionParams)
     {
         for (const std::unique_ptr<StatementExpression> &arg : call->Args)
         {
@@ -128,7 +128,7 @@ std::shared_ptr<Type> Checker::checkExpressionFunctionCall(const ExpressionFunct
 
             if (!(*paramType.get() == *argType.get()))
             {
-                emitErrorArgsTypesNoMatch((Location &)arg->location, paramType, argType);
+                emitErrorArgsTypesNoMatch(arg->location, paramType, argType);
                 return nullptr;
             }
         }
@@ -137,7 +137,7 @@ std::shared_ptr<Type> Checker::checkExpressionFunctionCall(const ExpressionFunct
     return calleeFunction->GetReturnType();
 }
 
-void Checker::emitErrorNoField(Location &location, std::shared_ptr<Type> object, std::string &field)
+void Checker::emitErrorNoField(const Location &location, std::shared_ptr<Type> object, std::string &field)
 {
     std::ostringstream messageStream;
     messageStream << "Field `" << field << "` ";
@@ -145,14 +145,14 @@ void Checker::emitErrorNoField(Location &location, std::shared_ptr<Type> object,
     diagnostics.RegisterError(DiagnosticError(ErrorKind::UnboundProperty, location, messageStream.str()));
 }
 
-void Checker::emitErrorNameNotDefined(Location &location, std::string &name)
+void Checker::emitErrorNameNotDefined(const Location &location, const std::string &name)
 {
     std::ostringstream messageStream;
     messageStream << "Cannot find name `" << name << "`.";
     diagnostics.RegisterError(DiagnosticError(ErrorKind::UnboundName, location, messageStream.str()));
 }
 
-void Checker::emitErrorArgsCountNoMatch(Location &location, size_t expectedCount, size_t providedCount)
+void Checker::emitErrorArgsCountNoMatch(const Location &location, size_t expectedCount, size_t providedCount)
 {
     std::ostringstream messageStream;
     messageStream << "Expected " << expectedCount << " arguments ";
@@ -160,7 +160,7 @@ void Checker::emitErrorArgsCountNoMatch(Location &location, size_t expectedCount
     diagnostics.RegisterError(DiagnosticError(ErrorKind::ArgumentsCountNoMatch, location, messageStream.str()));
 }
 
-void Checker::emitErrorNotCallable(Location &location, std::shared_ptr<Type> calleeType)
+void Checker::emitErrorNotCallable(const Location &location, std::shared_ptr<Type> calleeType)
 {
     std::ostringstream messageStream;
     messageStream << "This expression is not callable." << std::endl;
@@ -168,7 +168,7 @@ void Checker::emitErrorNotCallable(Location &location, std::shared_ptr<Type> cal
     diagnostics.RegisterError(DiagnosticError(ErrorKind::ArgumentsCountNoMatch, location, messageStream.str()));
 }
 
-void Checker::emitErrorArgsTypesNoMatch(Location &location, std::shared_ptr<Type> expectedType,
+void Checker::emitErrorArgsTypesNoMatch(const Location &location, std::shared_ptr<Type> expectedType,
                                         std::shared_ptr<Type> providedType)
 {
     std::ostringstream messageStream;

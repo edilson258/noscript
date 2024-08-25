@@ -47,7 +47,7 @@ class AstDumper
     void DumpExprFunctionCall(const ExpressionFunctionCall *);
 
   public:
-    AstDumper(std::ostream &os, int tab) : m_os(os), m_TabRate(tab), m_Tab(0) {};
+    AstDumper(std::ostream &os, int tab) : m_Tab(0), m_TabRate(tab), m_os(os) {};
 
     void Dump(const std::vector<std::unique_ptr<Statement>> &);
 };

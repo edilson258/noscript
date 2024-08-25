@@ -21,7 +21,7 @@ class Scope
 
   public:
     Scope(std::unordered_map<std::string, std::shared_ptr<Type>> entries)
-        : m_Parent(nullptr), m_Kind(ScopeKind::Global), m_Store(entries) {};
+        : m_Kind(ScopeKind::Global), m_Parent(nullptr), m_Store(entries) {};
 
     ScopeKind GetKind() const { return m_Kind; };
     bool HasParent() const { return m_Parent != nullptr; };

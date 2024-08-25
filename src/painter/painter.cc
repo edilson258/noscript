@@ -29,16 +29,16 @@ std::string Painter::Paint(std::string text, Color colorKind)
 
 std::string Painter::HighlightRange(const std::string &code, size_t begin, size_t end, std::string customFill)
 {
-    int code_len = code.length();
+    size_t code_len = code.length();
     end = end >= code_len ? code_len - 1 : end;
 
-    int cursor = 0;
-    int line_counter = 1;
-    int begin_of_line = 0;
+    size_t cursor = 0;
+    size_t line_counter = 1;
+    size_t begin_of_line = 0;
 
-    int index_where_slice_begin = 0;
-    int line_number_where_slice_begin = 0;
-    int line_number_where_slice_end = 0;
+    size_t index_where_slice_begin = 0;
+    size_t line_number_where_slice_begin = 0;
+    size_t line_number_where_slice_end = 0;
 
     while (cursor < code_len)
     {
@@ -70,7 +70,7 @@ std::string Painter::HighlightRange(const std::string &code, size_t begin, size_
     oss << "    |" << std::endl;
 
     cursor = index_where_slice_begin;
-    for (int i = line_number_where_slice_begin; i < line_number_where_slice_end; ++i)
+    for (size_t i = line_number_where_slice_begin; i < line_number_where_slice_end; ++i)
     {
         oss << "  " << i << " | ";
         while (code[cursor] != '\n')
@@ -82,9 +82,9 @@ std::string Painter::HighlightRange(const std::string &code, size_t begin, size_
         oss << code[cursor++];
         oss << "    | ";
 
-        for (int i = index_where_slice_begin; i <= end; ++i)
+        for (size_t j = index_where_slice_begin; j <= end; ++j)
         {
-            if (i >= begin && i <= end)
+            if (j >= begin && j <= end)
             {
                 oss << customFill;
             }

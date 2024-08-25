@@ -17,7 +17,7 @@ std::unique_ptr<Ast> Parser::Parse()
 
     while (TokenKind::Eof != m_CurrentToken.GetKind())
     {
-        ast.get()->block.push_back(std::move(parseStatement()));
+        ast.get()->block.push_back(parseStatement());
     }
 
     return ast;
@@ -86,7 +86,7 @@ std::unique_ptr<StatementExpression> Parser::parseStatementExpression(Precedence
 std::unique_ptr<ExpressionMemberAccess> Parser::parseExpressionMemberAccess(std::unique_ptr<StatementExpression> object)
 {
     bump();
-    Location location = (Location)object->location + m_CurrentToken.GetLocation();
+    const Location location = static_cast<Location>(object->location) + m_CurrentToken.GetLocation();
     auto expression = parseStatementExpression(Precedence::MemberAccess);
 
     if (ExpressionKind::Identifier != expression.get()->Kind)
@@ -106,9 +106,9 @@ std::unique_ptr<ExpressionFunctionCall> Parser::parseExpressionFunctionCall(std:
 {
     bump();
     std::vector<std::unique_ptr<StatementExpression>> args = parseListOfExpressions(TokenKind::RightParent);
-    auto range = (Location)callee->location + m_CurrentToken.GetLocation();
-    bumpExpect(TokenKind::RightParent, range, "Expected `)` after arguments list.");
-    return std::make_unique<ExpressionFunctionCall>(std::move(callee), std::move(args), range);
+    const Location location = static_cast<Location>(callee->location) + m_CurrentToken.GetLocation();
+    bumpExpect(TokenKind::RightParent, location, "Expected `)` after arguments list.");
+    return std::make_unique<ExpressionFunctionCall>(std::move(callee), std::move(args), location);
 }
 
 std::vector<std::unique_ptr<StatementExpression>> Parser::parseListOfExpressions(TokenKind stop)
