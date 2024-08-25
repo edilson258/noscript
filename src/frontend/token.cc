@@ -19,6 +19,9 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
     case TokenKind::Semicolon:
         os << "Symbol: ;";
         break;
+    case TokenKind::Comma:
+        os << "Symbol: ,";
+        break;
     case TokenKind::String:
         os << "String: " << std::get<std::string>(token.GetData());
         break;
@@ -55,6 +58,9 @@ std::ostream &operator<<(std::ostream &os, const TokenKind &tokenKind)
         break;
     case TokenKind::Semicolon:
         os << "Symbol: ;";
+        break;
+    case TokenKind::Comma:
+        os << "Symbol: ,";
         break;
     case TokenKind::String:
         os << "String Literal";
