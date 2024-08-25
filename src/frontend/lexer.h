@@ -47,4 +47,7 @@ class Lexer
     };
 
     Token GetNextToken();
+
+    const std::string &GetFileContents() const { return m_Raw; };
+    const std::string &GetFileName() const { return m_FileName; };
 };

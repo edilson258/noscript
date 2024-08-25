@@ -16,6 +16,10 @@ enum ErrorKind
     UnboundProperty = 1003,
     ArgumentsCountNoMatch = 1004,
     ArgumentsTypesNoMatch = 1005,
+    UnexpectedToken = 1006,
+    UnexpectedArgsSeparator = 1007,
+    ExpectedFieldName = 1008,
+    UnexpectedLeftSideExpression = 1009,
 };
 
 class DiagnosticError
@@ -39,9 +43,12 @@ class Diagnostics
   private:
     std::vector<DiagnosticError> m_Diagnostics;
 
+    void displayError(std::ostream &, const std::string &, const std::string &, DiagnosticError);
+
   public:
     Diagnostics() : m_Diagnostics() {};
 
     void RegisterError(DiagnosticError error) { m_Diagnostics.push_back(error); }
-    void EmitAll(std::ostream &os, std::string &fileName, std::string &fileContents);
+    void EmitAll(std::ostream &os, const std::string &fileName, const std::string &fileContents);
+    void EmitNow(std::ostream &os, const std::string &fileName, const std::string &fileContents, DiagnosticError);
 };

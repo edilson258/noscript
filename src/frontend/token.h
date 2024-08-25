@@ -18,6 +18,7 @@ enum class TokenKind
     Identifier,
 
     Dot,
+    Comma,
     Semicolon,
     LeftParent,
     RightParent,

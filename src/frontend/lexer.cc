@@ -30,6 +30,8 @@ Token Lexer::GetNextToken()
         return readSimpleToken(TokenKind::Dot);
     case ';':
         return readSimpleToken(TokenKind::Semicolon);
+    case ',':
+        return readSimpleToken(TokenKind::Comma);
     case '"':
         return readStringToken();
     }
@@ -86,8 +88,7 @@ Token Lexer::readStringToken()
             DiagnosticError err(ErrorKind::UnterminatedString,
                                 Location(startLine, startColumn, m_RangeStart, m_RangeEnd),
                                 "Unterminated string literal");
-            diagnostics.RegisterError(err);
-            diagnostics.EmitAll(std::cerr, (std::string &)m_FileName, (std::string &)m_Raw);
+            diagnostics.EmitNow(std::cerr, m_FileName, m_Raw, err);
             abort();
         }
 

@@ -83,11 +83,11 @@ std::ostream &TypeFunction::Dump(std::ostream &os) const
     {
         if (m_Parameters.size() > 0)
         {
-            os << ", any[] ...";
+            os << ", ...: any[]";
         }
         else
         {
-            os << "any[] ...";
+            os << "...data: any[]";
         }
     }
 

@@ -1,8 +1,10 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 
+#include "../diagnostics/diagnostics.h"
 #include "ast.h"
 #include "lexer.h"
 #include "token.h"
@@ -24,7 +26,7 @@ class Parser
     Token m_NextToken;
 
     void bump();
-    void bumpExpect(TokenKind);
+    void bumpExpect(TokenKind, Location, std::string);
 
     std::unique_ptr<Statement> parseStatement();
     std::unique_ptr<StatementExpression> parseStatementExpression(Precedence);
@@ -34,6 +36,8 @@ class Parser
 
     // helpers
     Precedence currTokenPrecedence();
+
+    Diagnostics diagnostics;
 
   public:
     Parser(Lexer &lexer) : m_Lexer(lexer) {};

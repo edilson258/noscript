@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "ast.h"
@@ -29,7 +30,7 @@ std::unique_ptr<Statement> Parser::parseStatement()
     default:
     {
         auto expression = parseStatementExpression(Precedence::Lowest);
-        bumpExpect(TokenKind::Semicolon);
+        bumpExpect(TokenKind::Semicolon, expression->location, "Expected `;` after an expression");
         return static_cast<std::unique_ptr<Statement>>(std::move(expression));
     }
     }
@@ -56,7 +57,9 @@ std::unique_ptr<StatementExpression> Parser::parseStatementExpression(Precedence
                                                      m_CurrentToken.GetLocation());
         break;
     default:
-        std::cerr << "[Error] unexpected lhs expression: " << m_CurrentToken << std::endl;
+        DiagnosticError error(ErrorKind::UnexpectedLeftSideExpression, m_CurrentToken.GetLocation(),
+                              "Unexpected left side expression.");
+        diagnostics.EmitNow(std::cerr, m_Lexer.GetFileName(), m_Lexer.GetFileContents(), error);
         abort();
     }
 
@@ -82,13 +85,14 @@ std::unique_ptr<StatementExpression> Parser::parseStatementExpression(Precedence
 
 std::unique_ptr<ExpressionMemberAccess> Parser::parseExpressionMemberAccess(std::unique_ptr<StatementExpression> object)
 {
-    bumpExpect(TokenKind::Dot);
+    bump();
     Location location = (Location)object->location + m_CurrentToken.GetLocation();
     auto expression = parseStatementExpression(Precedence::MemberAccess);
 
     if (ExpressionKind::Identifier != expression.get()->Kind)
     {
-        std::cerr << "rhs of '.' must be an identifier" << std::endl;
+        DiagnosticError error(ErrorKind::ExpectedFieldName, expression->location, "Expected field name.");
+        diagnostics.EmitNow(std::cerr, m_Lexer.GetFileName(), m_Lexer.GetFileContents(), error);
         abort();
     }
 
@@ -100,10 +104,10 @@ std::unique_ptr<ExpressionMemberAccess> Parser::parseExpressionMemberAccess(std:
 
 std::unique_ptr<ExpressionFunctionCall> Parser::parseExpressionFunctionCall(std::unique_ptr<StatementExpression> callee)
 {
-    bumpExpect(TokenKind::LeftParent);
+    bump();
     std::vector<std::unique_ptr<StatementExpression>> args = parseListOfExpressions(TokenKind::RightParent);
     auto range = (Location)callee->location + m_CurrentToken.GetLocation();
-    bumpExpect(TokenKind::RightParent);
+    bumpExpect(TokenKind::RightParent, range, "Expected `)` after arguments list.");
     return std::make_unique<ExpressionFunctionCall>(std::move(callee), std::move(args), range);
 }
 
@@ -114,6 +118,21 @@ std::vector<std::unique_ptr<StatementExpression>> Parser::parseListOfExpressions
     while (m_CurrentToken.GetKind() != stop)
     {
         xs.push_back(parseStatementExpression(Precedence::Lowest));
+        if (TokenKind::Comma == m_CurrentToken.GetKind())
+        {
+            bump();
+        }
+        else if (stop == m_CurrentToken.GetKind())
+        {
+            break;
+        }
+        else
+        {
+            DiagnosticError error(ErrorKind::UnexpectedArgsSeparator, m_CurrentToken.GetLocation(),
+                                  "Expected `,` to separate function arguments.");
+            diagnostics.EmitNow(std::cerr, m_Lexer.GetFileName(), m_Lexer.GetFileContents(), error);
+            abort();
+        }
     }
 
     return xs;
@@ -140,12 +159,12 @@ void Parser::bump()
     m_NextToken = m_Lexer.GetNextToken();
 }
 
-void Parser::bumpExpect(TokenKind expected_kind)
+void Parser::bumpExpect(TokenKind expected_kind, Location location, std::string message)
 {
     if (expected_kind != m_CurrentToken.GetKind())
     {
-        std::cerr << "Error: expected token " << expected_kind;
-        std::cerr << " but got " << m_CurrentToken.GetKind();
+        DiagnosticError error(ErrorKind::UnexpectedToken, location, message);
+        diagnostics.EmitNow(std::cerr, m_Lexer.GetFileName(), m_Lexer.GetFileContents(), error);
         abort();
     }
     bump();
